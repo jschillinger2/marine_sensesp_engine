@@ -7,7 +7,11 @@ using namespace sensesp;
 
 ReactESP app;
 
+void setupSeacockSensor();
+void setupHeatSensors();
+
 void setup() {
+
 #ifndef SERIAL_DEBUG_DISABLED
   SetupSerialDebug(115200);
 #endif
@@ -15,6 +19,19 @@ void setup() {
   // Create the global SensESPApp() object.
   SensESPAppBuilder builder;
   sensesp_app = builder.get_app();
+
+  setupHeatSensors();
+  setupSeacockSensor();
+
+  // Configuration is done, lets start the readings of the sensors!
+  sensesp_app->start();
+}
+
+// setup heat sensors
+void setupHeatSensors() {
+  /**
+   * ### Heat Sensors
+   */
 
   /*
      Find all the sensors and their unique addresses. Then, each new instance
@@ -24,11 +41,6 @@ void setup() {
      the configuration page for the device. (You get to the configuration page
      by entering the IP address of the device into a browser.)
   */
-
-
-/**
- * Heat Sensors
-*/
 
   /*
      Tell SensESP where the sensor is connected to the board
@@ -68,14 +80,15 @@ void setup() {
   alt_12v_temp->connect_to(new Linear(1.0, 0.0, "/12vAltTemperature/linear"))
       ->connect_to(new SKOutputFloat("electrical.alternators.12V.temperature",
                                      "/12vAltTemperature/skPath"));
+}
 
-/**
- * Seacock Sensor
-*/
+// setup seaock open digital sensor
+void setupSeacockSensor() {
+  /**
+   * ### Seacock Sensor
+   */
 
-
-
-// Create another digital input, this time with RepeatSensor. This approach
+  // Create another digital input, this time with RepeatSensor. This approach
   // can be used to connect external sensor library to SensESP!
 
   const uint8_t kDigitalInput2Pin = 14;
@@ -89,26 +102,17 @@ void setup() {
   // Replace the lambda function internals with the input routine of your custom
   // library.
 
-  // Again, test this yourself by connecting pin 15 to pin 13 with a jumper
-  // wire and see if the value changes!
-
   auto* digital_input2 = new RepeatSensor<bool>(
       kDigitalInput2Interval,
       [kDigitalInput2Pin]() { return digitalRead(kDigitalInput2Pin); });
 
-
-// Connect digital input 2 to Signal K output.
+  // Connect digital input 2 to Signal K output.
   digital_input2->connect_to(new SKOutputBool(
-      "sensors.digital_input2.value",          // Signal K path
-      "/sensors/digital_input2/value",         // configuration path
-      new SKMetadata("",                       // No units for boolean values
+      "sensors.seacock_open.value",   // Signal K path
+      "/sensors/seacock_open/value",  // configuration path
+      new SKMetadata("",              // No units for boolean values
                      "Seacock Open")  // Value description
       ));
-
-
-
-  // Configuration is done, lets start the readings of the sensors!
-  sensesp_app->start();
 }
 
 // main program loop
