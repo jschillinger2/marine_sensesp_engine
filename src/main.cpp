@@ -2,6 +2,9 @@
 #include "sensesp/transforms/linear.h"
 #include "sensesp_app_builder.h"
 #include "sensesp_onewire/onewire_temperature.h"
+#include "nvs_flash.h"
+#include "lwip/err.h"
+#include "lwip/sys.h"
 
 using namespace sensesp;
 
@@ -11,20 +14,42 @@ void setupSeacockSensor();
 void setupHeatSensors();
 
 void setup() {
-
 #ifndef SERIAL_DEBUG_DISABLED
   SetupSerialDebug(115200);
 #endif
 
+
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  // WiFi.begin("nini", "12345678");
+
+  Serial.println("Setup done");
+
+ esp_err_t ret = nvs_flash_init();
+ // if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+ //     ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  //}
+  ESP_ERROR_CHECK(ret);
+
+  //WiFi.begin("nini", "12345678");
+  
+
   // Create the global SensESPApp() object.
   SensESPAppBuilder builder;
+  builder.set_hostname("Blackwater");
+  //->set_sk_server("10.10.10.1", 3000)
+   builder.set_wifi("nini", "12345678");
   sensesp_app = builder.get_app();
 
   setupHeatSensors();
   setupSeacockSensor();
 
   // Configuration is done, lets start the readings of the sensors!
-  sensesp_app->start();
+  sensesp_app->start(); 
 }
 
 // setup heat sensors
@@ -91,7 +116,7 @@ void setupSeacockSensor() {
   // Create another digital input, this time with RepeatSensor. This approach
   // can be used to connect external sensor library to SensESP!
 
-  const uint8_t kDigitalInput2Pin = 14;
+  const uint8_t kDigitalInput2Pin = 17;
   const unsigned int kDigitalInput2Interval = 1000;
 
   // Configure the pin. Replace this with your custom library initialization
@@ -116,4 +141,21 @@ void setupSeacockSensor() {
 }
 
 // main program loop
-void loop() { app.tick(); }
+void loop() {  
+  
+  /*if (WiFi.status() == WL_CONNECT_FAILED) Serial.println("WL_CONNECT_FAILED");
+  if (WiFi.status() == WL_CONNECTION_LOST) Serial.println("WL_CONNECTION_LOST");
+  if (WiFi.status() == WL_DISCONNECTED) Serial.println("WL_DISCONNECTED");
+  if (WiFi.status() == WL_IDLE_STATUS) Serial.println("WL_IDLE_STATUS");
+  if (WiFi.status() == WL_NO_SHIELD) Serial.println("WL_NO_SHIELD");
+  if (WiFi.status() == WL_CONNECTED) Serial.println("WL_CONNECTED");
+  if (WiFi.status() == WL_CONNECTION_LOST) Serial.println("WL_CONNECTION_LOST");
+  if (WiFi.status() == WL_NO_SSID_AVAIL) Serial.println("WL_NO_SSID_AVAIL");
+  if (WiFi.status() == WL_SCAN_COMPLETED) Serial.println("WL_SCAN_COMPLETED");
+
+  Serial.println(".");
+
+  //  WiFi.printDiag(Serial);
+  Serial.println(WiFi.localIP());
+  delay(100);*/
+  app.tick(); }
