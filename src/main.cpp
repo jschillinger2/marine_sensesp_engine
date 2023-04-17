@@ -1,10 +1,10 @@
+#include "lwip/err.h"
+#include "lwip/sys.h"
+#include "nvs_flash.h"
 #include "sensesp/signalk/signalk_output.h"
 #include "sensesp/transforms/linear.h"
 #include "sensesp_app_builder.h"
 #include "sensesp_onewire/onewire_temperature.h"
-#include "nvs_flash.h"
-#include "lwip/err.h"
-#include "lwip/sys.h"
 
 using namespace sensesp;
 
@@ -13,43 +13,38 @@ ReactESP app;
 void setupSeacockSensor();
 void setupHeatSensors();
 
+const String WIFI_SSID = "nini";
+const String WIFI_PASSWORD = "12345678";
+const String SIGNALK_HOSTNAME = "Blackwater";
+
+
 void setup() {
+
 #ifndef SERIAL_DEBUG_DISABLED
   SetupSerialDebug(115200);
 #endif
 
-
-
+  // reset flash and wifi
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-  // WiFi.begin("nini", "12345678");
-
-  Serial.println("Setup done");
-
- esp_err_t ret = nvs_flash_init();
- // if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
- //     ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    ESP_ERROR_CHECK(nvs_flash_erase());
-    ret = nvs_flash_init();
-  //}
+  esp_err_t ret = nvs_flash_init();
+  ESP_ERROR_CHECK(nvs_flash_erase());
+  ret = nvs_flash_init();
   ESP_ERROR_CHECK(ret);
-
-  //WiFi.begin("nini", "12345678");
-  
 
   // Create the global SensESPApp() object.
   SensESPAppBuilder builder;
-  builder.set_hostname("Blackwater");
-  //->set_sk_server("10.10.10.1", 3000)
-   builder.set_wifi("nini", "12345678");
+  builder.set_hostname(SIGNALK_HOSTNAME);
+  builder.set_wifi(WIFI_SSID, WIFI_PASSWORD);
   sensesp_app = builder.get_app();
 
+  // set up sensors
   setupHeatSensors();
   setupSeacockSensor();
 
   // Configuration is done, lets start the readings of the sensors!
-  sensesp_app->start(); 
+  sensesp_app->start();
 }
 
 // setup heat sensors
@@ -141,8 +136,9 @@ void setupSeacockSensor() {
 }
 
 // main program loop
-void loop() {  
+void loop() {
   
+  // wifi debug code 
   /*if (WiFi.status() == WL_CONNECT_FAILED) Serial.println("WL_CONNECT_FAILED");
   if (WiFi.status() == WL_CONNECTION_LOST) Serial.println("WL_CONNECTION_LOST");
   if (WiFi.status() == WL_DISCONNECTED) Serial.println("WL_DISCONNECTED");
@@ -158,4 +154,6 @@ void loop() {
   //  WiFi.printDiag(Serial);
   Serial.println(WiFi.localIP());
   delay(100);*/
-  app.tick(); }
+ 
+  app.tick();
+}
