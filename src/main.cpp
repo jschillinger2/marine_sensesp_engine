@@ -159,7 +159,7 @@ void setupTempSensors()
     auto alternator_temp = new OneWireTemperature(dts, read_delay, "/alternatorTemperature/oneWire");
     alternator_temp
         ->connect_to(new Linear(1.0, 0.0, "/alternatorTemperature/linear"))
-        ->connect_to(new SKOutputFloat("propulsion.mainEngine.alternatorTemperature", ""));
+        ->connect_to(new SKOutputFloat("electrical.alternators.12V.temperature", ""));
     alternator_temp->attach([alternator_temp]
                             { debugD("Alternator temp: %.1f °C", alternator_temp->get()); });
   }
